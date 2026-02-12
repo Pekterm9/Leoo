@@ -11,7 +11,7 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family: 'Segoe UI', sans-serif;
+    font-family:'Segoe UI',sans-serif;
 }
 
 body{
@@ -31,9 +31,7 @@ body{
     flex-direction:column;
 }
 
-.sidebar h1{
-    font-size:36px;
-}
+.sidebar h1{ font-size:36px; }
 
 .sidebar p{
     font-size:13px;
@@ -52,13 +50,9 @@ body{
     transition:0.2s;
 }
 
-.nav-btn:hover{
-    background:#374151;
-}
+.nav-btn:hover{ background:#374151; }
 
-.active{
-    border:2px solid #facc15;
-}
+.active{ border:2px solid #facc15; }
 
 /* WORKSPACE */
 
@@ -70,9 +64,7 @@ body{
     z-index:1;
 }
 
-.hidden{
-    display:none;
-}
+.hidden{ display:none; }
 
 .topbar{
     display:flex;
@@ -87,12 +79,9 @@ body{
     border:none;
     border-radius:8px;
     cursor:pointer;
-    transition:0.2s;
 }
 
-.new-btn:hover{
-    opacity:0.85;
-}
+.new-btn:hover{ opacity:0.85; }
 
 /* ITEMS */
 
@@ -108,9 +97,7 @@ body{
     transition:0.2s;
 }
 
-.item:hover{
-    transform:translateY(-2px);
-}
+.item:hover{ transform:translateY(-2px); }
 
 .item-left{
     display:flex;
@@ -118,17 +105,21 @@ body{
 }
 
 .checkbox{
-    width:18px;
-    height:18px;
-    border-radius:4px;
+    width:20px;
+    height:20px;
+    border-radius:6px;
     border:2px solid #111827;
     margin-right:15px;
     cursor:pointer;
+    background:white;
+    transition:0.2s;
 }
+
+.checkbox:hover{ background:#111827; }
 
 .badge{
     font-size:12px;
-    padding:3px 8px;
+    padding:4px 10px;
     border-radius:20px;
 }
 
@@ -145,15 +136,14 @@ body{
 /* MODAL */
 
 .modal-bg{
-    .modal-bg{
     position:fixed;
     inset:0;
     backdrop-filter:blur(6px);
-    background:rgba(0,0,0,0.2); /* helps visibility */
+    background:rgba(0,0,0,0.2);
     display:none;
     align-items:center;
     justify-content:center;
-    z-index:1000; /* ensures correct layering */
+    z-index:1000;
 }
 
 .modal{
@@ -165,13 +155,11 @@ body{
 }
 
 @keyframes fadeIn{
-    from{transform:scale(0.95); opacity:0;}
-    to{transform:scale(1); opacity:1;}
+    from{transform:scale(0.95);opacity:0;}
+    to{transform:scale(1);opacity:1;}
 }
 
-.modal h2{
-    margin-bottom:20px;
-}
+.modal h2{ margin-bottom:20px; }
 
 .modal input{
     width:100%;
@@ -257,22 +245,22 @@ const STATS_KEY="leoo_stats";
 
 let tasks=JSON.parse(localStorage.getItem(TASKS_KEY))||[];
 let goals=JSON.parse(localStorage.getItem(GOALS_KEY))||[];
-
-let completedData=JSON.parse(localStorage.getItem(STATS_KEY))||{
-    tasks:{},
-    goals:{}
-};
+let completedData=JSON.parse(localStorage.getItem(STATS_KEY))||{tasks:{},goals:{}};
 
 let currentWorkspace="tasks";
+let chart;
 
+/* ---------- SAVE ---------- */
 function save(){
     localStorage.setItem(TASKS_KEY,JSON.stringify(tasks));
     localStorage.setItem(GOALS_KEY,JSON.stringify(goals));
     localStorage.setItem(STATS_KEY,JSON.stringify(completedData));
 }
 
+/* ---------- SWITCH WORKSPACE ---------- */
 function switchWorkspace(type){
     currentWorkspace=type;
+
     document.querySelectorAll(".workspace").forEach(w=>w.classList.add("hidden"));
     document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
 
@@ -291,16 +279,27 @@ function switchWorkspace(type){
     }
 }
 
+/* ---------- MODAL ---------- */
 function openModal(){
-    document.getElementById("modalBg").style.display = "flex";
+    document.getElementById("modalBg").style.display="flex";
+    itemInput.value="";
+    dateInput.value="";
+    if(currentWorkspace==="tasks"){
+        modalTitle.innerText="New Task";
+        dateInput.style.display="block";
+    } else {
+        modalTitle.innerText="New Goal";
+        dateInput.style.display="none";
+    }
 }
 
 function closeModal(){
-    document.getElementById("modalBg").style.display = "none";
+    document.getElementById("modalBg").style.display="none";
 }
 
+/* ---------- CREATE ---------- */
 function createItem(){
-    let text=itemInput.value.trim();
+    const text=itemInput.value.trim();
     if(!text) return;
 
     if(currentWorkspace==="tasks"){
@@ -310,10 +309,12 @@ function createItem(){
         goals.push({text});
         renderGoals();
     }
+
     save();
     closeModal();
 }
 
+/* ---------- RENDER TASKS ---------- */
 function renderTasks(){
     tasksList.innerHTML="";
 
@@ -324,14 +325,10 @@ function renderTasks(){
         const left=document.createElement("div");
         left.className="item-left";
 
-        /* ✅ REAL BUTTON INSTEAD OF DIV */
         const checkbox=document.createElement("button");
         checkbox.className="checkbox";
         checkbox.type="button";
-        checkbox.onclick=(e)=>{
-            e.stopPropagation();
-            complete(i,"tasks");
-        };
+        checkbox.onclick=()=>complete(i,"tasks");
 
         const span=document.createElement("span");
         span.innerText=t.text;
@@ -354,15 +351,12 @@ function renderTasks(){
             if(diff===0){
                 badge.classList.add("red");
                 badge.innerText="Due Today";
-            }
-            else if(diff===1){
+            } else if(diff===1){
                 badge.classList.add("orange");
                 badge.innerText="1 Day Left";
-            }
-            else if(diff>1){
+            } else if(diff>1){
                 badge.innerText=diff+" Days Left";
-            }
-            else{
+            } else {
                 badge.classList.add("red");
                 badge.innerText="Expired";
             }
@@ -376,9 +370,7 @@ function renderTasks(){
     });
 }
 
-
-/* ----------- RENDER GOALS (FIXED CHECKBOX) ----------- */
-
+/* ---------- RENDER GOALS ---------- */
 function renderGoals(){
     goalsList.innerHTML="";
 
@@ -392,10 +384,7 @@ function renderGoals(){
         const checkbox=document.createElement("button");
         checkbox.className="checkbox";
         checkbox.type="button";
-        checkbox.onclick=(e)=>{
-            e.stopPropagation();
-            complete(i,"goals");
-        };
+        checkbox.onclick=()=>complete(i,"goals");
 
         const span=document.createElement("span");
         span.innerText=g.text;
@@ -407,10 +396,25 @@ function renderGoals(){
         goalsList.appendChild(div);
     });
 }
-    
+
+/* ---------- COMPLETE ---------- */
+function complete(index,type){
+    const month=new Date().toLocaleString('default',{month:'long'});
+    if(!completedData[type][month]) completedData[type][month]=0;
+    completedData[type][month]++;
+
+    if(type==="tasks"){
+        tasks.splice(index,1);
+        renderTasks();
+    } else {
+        goals.splice(index,1);
+        renderGoals();
+    }
+
+    save();
 }
 
-let chart;
+/* ---------- CHART ---------- */
 function updateChart(){
     if(chart) chart.destroy();
 
@@ -436,6 +440,7 @@ function updateChart(){
     });
 }
 
+/* ---------- INIT ---------- */
 renderTasks();
 renderGoals();
 </script>
