@@ -1,163 +1,157 @@
-<!DOCTYPE html
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leoo - Think smarter, plan wiser</title>
-
+<title>Leoo</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial, sans-serif;}
 
 body{
+    background:#f5f6fa;
     display:flex;
     height:100vh;
-    background:#eaeaea;
 }
 
-/* SIDEBAR */
-
 .sidebar{
-    width:250px;
-    background:black;
+    width:230px;
+    background:#111;
     color:white;
-    padding:40px 20px;
+    padding:30px 20px;
     display:flex;
     flex-direction:column;
-    align-items:center;
 }
 
 .sidebar h1{
-    font-size:40px;
+    font-size:26px;
 }
 
 .sidebar p{
-    font-size:14px;
+    font-size:13px;
+    opacity:0.7;
     margin-bottom:40px;
 }
 
-.nav-btn{
-    width:160px;
-    padding:12px;
-    margin:10px 0;
+.sidebar button{
+    background:none;
     border:none;
-    border-radius:10px;
+    color:white;
+    padding:12px;
+    margin-bottom:10px;
+    text-align:left;
+    border-radius:8px;
     cursor:pointer;
-    font-size:16px;
+    font-size:15px;
 }
 
-.active{
-    outline:3px solid #ffd700;
+.sidebar button:hover{
+    background:#222;
 }
 
-.workspace{
+.sidebar button.active{
+    border-left:4px solid #FFD700;
+    background:#222;
+}
+
+.main{
     flex:1;
     padding:40px;
     overflow-y:auto;
-    transition:0.3s;
 }
 
 .topbar{
     display:flex;
     justify-content:space-between;
-    margin-bottom:20px;
+    margin-bottom:30px;
 }
 
-.new-btn{
-    padding:8px 14px;
+.topbar button{
+    background:#FFD700;
+    border:none;
+    padding:10px 18px;
     border-radius:8px;
-    border:1px solid #333;
     cursor:pointer;
+    font-weight:bold;
+}
+
+.list{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
 }
 
 .item{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
     background:white;
-    padding:12px 20px;
-    margin:10px 0;
+    padding:15px;
     border-radius:10px;
-    border:1px solid #ccc;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 3px 6px rgba(0,0,0,0.08);
 }
 
 .item-left{
     display:flex;
     align-items:center;
+    gap:12px;
 }
 
-.checkbox{
+.check{
     width:18px;
     height:18px;
-    border:1px solid black;
-    margin-right:12px;
+    border:2px solid #333;
     cursor:pointer;
 }
 
 .warning{
-    margin-right:8px;
-    font-weight:bold;
+    font-size:18px;
 }
 
-.orange{
-    color:orange;
-}
-
-.red{
-    color:red;
+.date{
+    font-size:14px;
+    color:#555;
 }
 
 .modal-bg{
     position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    backdrop-filter:blur(5px);
+    inset:0;
+    backdrop-filter:blur(6px);
+    background:rgba(0,0,0,0.2);
     display:none;
     align-items:center;
     justify-content:center;
+    z-index:1000;
 }
 
 .modal{
     background:white;
     padding:30px;
-    width:400px;
-    border-radius:20px;
-}
-
-.modal h2{
-    text-align:center;
-    margin-bottom:20px;
+    border-radius:12px;
+    width:350px;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
 }
 
 .modal input{
-    width:100%;
     padding:10px;
-    margin:10px 0;
+    border-radius:6px;
+    border:1px solid #ccc;
 }
 
 .modal button{
-    width:100%;
+    background:#FFD700;
+    border:none;
     padding:10px;
-    margin-top:10px;
+    border-radius:8px;
+    font-weight:bold;
     cursor:pointer;
 }
 
-.hidden{
-    display:none;
-}
-
 canvas{
-    background:white;
-    padding:20px;
-    border-radius:10px;
+    margin-top:20px;
 }
 </style>
 </head>
@@ -166,276 +160,201 @@ canvas{
 
 <div class="sidebar">
     <h1>Leoo</h1>
-    <p>Think smarter, plan wiser</p>
-
-    <button class="nav-btn active" onclick="switchWorkspace('tasks')">Tasks</button>
-    <button class="nav-btn" onclick="switchWorkspace('goals')">Goals</button>
-    <button class="nav-btn" onclick="switchWorkspace('stats')">Statistics</button>
+    <p>think smarter, plan wiser</p>
+    <button id="tasksBtn" class="active">Tasks</button>
+    <button id="goalsBtn">Goals</button>
+    <button id="statsBtn">Statistics</button>
 </div>
 
-<div class="workspace" id="tasksWorkspace">
+<div class="main">
     <div class="topbar">
-        <button class="new-btn" onclick="openModal()">+ New</button>
+        <h2 id="workspaceTitle">Tasks</h2>
+        <button id="newBtn">+ New</button>
     </div>
-    <div id="tasksList"></div>
-</div>
-
-<div class="workspace hidden" id="goalsWorkspace">
-    <div class="topbar">
-        <button class="new-btn" onclick="openModal()">+ New</button>
-    </div>
-    <div id="goalsList"></div>
-</div>
-
-<div class="workspace hidden" id="statsWorkspace">
-    <h2>Tasks Completion</h2>
-    <canvas id="statsChart"></canvas>
+    <div id="content"></div>
 </div>
 
 <div class="modal-bg" id="modalBg">
     <div class="modal">
-        <h2 id="modalTitle">New Task</h2>
-        <input type="text" id="itemInput" placeholder="Type here">
-        <input type="date" id="dateInput">
-        <button onclick="createItem()">Create</button>
-        <button onclick="closeModal()">Cancel</button>
+        <h3 id="modalTitle">New Task</h3>
+        <input type="text" id="itemName" placeholder="Enter name">
+        <input type="date" id="itemDate">
+        <button id="createBtn">Create</button>
     </div>
 </div>
 
 <script>
 let currentWorkspace = "tasks";
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let goals = JSON.parse(localStorage.getItem("goals")) || [];
+let completedTasks = JSON.parse(localStorage.getItem("completedTasks")) || [];
+let completedGoals = JSON.parse(localStorage.getItem("completedGoals")) || [];
 
-/* ---------------- STORAGE KEYS ---------------- */
+const content = document.getElementById("content");
+const modalBg = document.getElementById("modalBg");
+const itemName = document.getElementById("itemName");
+const itemDate = document.getElementById("itemDate");
+const modalTitle = document.getElementById("modalTitle");
 
-const TASKS_KEY = "leoo_tasks";
-const GOALS_KEY = "leoo_goals";
-const STATS_KEY = "leoo_stats";
-
-/* ---------------- LOAD FROM STORAGE ---------------- */
-
-let tasks = JSON.parse(localStorage.getItem(TASKS_KEY)) || [];
-let goals = JSON.parse(localStorage.getItem(GOALS_KEY)) || [];
-
-let completedData = JSON.parse(localStorage.getItem(STATS_KEY)) || {
-    "January":0,
-    "February":0,
-    "March":0,
-    "April":0,
-    "May":0,
-    "June":0,
-    "July":0,
-    "August":0,
-    "September":0,
-    "October":0,
-    "November":0,
-    "December":0
-};
-
-/* ---------------- SAVE FUNCTION ---------------- */
-
-function saveData(){
-    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
-    localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
-    localStorage.setItem(STATS_KEY, JSON.stringify(completedData));
+function save(){
+    localStorage.setItem("tasks",JSON.stringify(tasks));
+    localStorage.setItem("goals",JSON.stringify(goals));
+    localStorage.setItem("completedTasks",JSON.stringify(completedTasks));
+    localStorage.setItem("completedGoals",JSON.stringify(completedGoals));
 }
-
-/* ---------------- WORKSPACE SWITCH ---------------- */
 
 function switchWorkspace(type){
     currentWorkspace = type;
+    document.querySelectorAll(".sidebar button").forEach(b=>b.classList.remove("active"));
+    document.getElementById(type+"Btn").classList.add("active");
+    document.getElementById("workspaceTitle").innerText =
+        type==="tasks" ? "Tasks" :
+        type==="goals" ? "Goals" : "Statistics";
 
-    document.querySelectorAll(".workspace").forEach(w=>w.classList.add("hidden"));
-    document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
-
-    if(type === "tasks"){
-        tasksWorkspace.classList.remove("hidden");
-        document.querySelectorAll(".nav-btn")[0].classList.add("active");
-    }
-    if(type === "goals"){
-        goalsWorkspace.classList.remove("hidden");
-        document.querySelectorAll(".nav-btn")[1].classList.add("active");
-    }
-    if(type === "stats"){
-        statsWorkspace.classList.remove("hidden");
-        document.querySelectorAll(".nav-btn")[2].classList.add("active");
-        updateChart();
+    if(type==="stats"){
+        renderStats();
+        document.getElementById("newBtn").style.display="none";
+    }else{
+        document.getElementById("newBtn").style.display="inline-block";
+        renderList();
     }
 }
 
-/* ---------------- MODAL ---------------- */
+function renderList(){
+    content.innerHTML="";
+    const list = document.createElement("div");
+    list.className="list";
 
-function openModal(){
-    modalBg.style.display = "flex";
-    itemInput.value = "";
-    dateInput.value = "";
+    const data = currentWorkspace==="tasks"?tasks:goals;
 
-    if(currentWorkspace === "tasks"){
-        modalTitle.innerText = "New Task";
-        dateInput.style.display = "block";
-    } else {
-        modalTitle.innerText = "New Goal";
-        dateInput.style.display = "none";
-    }
-}
-
-function closeModal(){
-    modalBg.style.display = "none";
-}
-
-/* ---------------- CREATE ITEM ---------------- */
-
-function createItem(){
-    let text = itemInput.value.trim();
-    if(text === "") return;
-
-    if(currentWorkspace === "tasks"){
-        let date = dateInput.value || null;
-        tasks.push({text, date});
-        saveData();
-        renderTasks();
-    } else {
-        goals.push({text});
-        saveData();
-        renderGoals();
-    }
-
-    closeModal();
-}
-
-/* ---------------- RENDER TASKS ---------------- */
-
-function renderTasks(){
-    tasksList.innerHTML = "";
-
-    tasks.forEach((task, index)=>{
-        let div = document.createElement("div");
-        div.className = "item";
-
-        let left = document.createElement("div");
-        left.className = "item-left";
-
-        let warning = document.createElement("span");
-        warning.className = "warning";
-
-        let daysText = "";
-
-        if(task.date){
-            let today = new Date();
-            today.setHours(0,0,0,0);
-
-            let due = new Date(task.date);
-            due.setHours(0,0,0,0);
-
-            let diff = Math.ceil((due - today)/(1000*60*60*24));
-
-            if(diff === 0){
-                warning.innerText = "!!!";
-                warning.classList.add("red");
-            }
-            else if(diff === 1){
-                warning.innerText = "!";
-                warning.classList.add("orange");
-            }
-
-            daysText = diff >= 0 ? `<${diff} days left>` : "<Expired>";
-        }
-
-        let checkbox = document.createElement("div");
-        checkbox.className = "checkbox";
-        checkbox.onclick = ()=>{
-            completeItem(index, "task");
-        };
-
-        let span = document.createElement("span");
-        span.innerText = task.text;
-
-        left.appendChild(warning);
-        left.appendChild(checkbox);
-        left.appendChild(span);
-
-        let right = document.createElement("span");
-        right.innerHTML = daysText;
-
-        div.appendChild(left);
-        div.appendChild(right);
-
-        tasksList.appendChild(div);
-    });
-}
-
-/* ---------------- RENDER GOALS ---------------- */
-
-function renderGoals(){
-    goalsList.innerHTML = "";
-
-    goals.forEach((goal,index)=>{
-        let div = document.createElement("div");
+    data.forEach((item,index)=>{
+        const div=document.createElement("div");
         div.className="item";
 
-        let left = document.createElement("div");
+        const left=document.createElement("div");
         left.className="item-left";
 
-        let checkbox = document.createElement("div");
-        checkbox.className="checkbox";
-        checkbox.onclick=()=>{
-            completeItem(index,"goal");
-        };
+        const check=document.createElement("div");
+        check.className="check";
+        check.dataset.index=index;
 
-        let span=document.createElement("span");
-        span.innerText=goal.text;
+        const name=document.createElement("span");
+        name.innerText=item.name;
 
-        left.appendChild(checkbox);
-        left.appendChild(span);
+        left.appendChild(check);
+        left.appendChild(name);
 
-        div.appendChild(left);
+        if(currentWorkspace==="tasks"){
+            const right=document.createElement("div");
 
-        goalsList.appendChild(div);
+            const today=new Date();
+            const due=new Date(item.date);
+            const diff=Math.ceil((due-today)/(1000*60*60*24));
+
+            let warning="";
+            if(diff===1) warning="⚠";
+            if(diff===0) warning="❗❗❗";
+
+            right.innerHTML=`<span class="warning">${warning}</span> 
+                             <span class="date">${diff>=0?diff+" days left":"Expired"}</span>`;
+
+            div.appendChild(left);
+            div.appendChild(right);
+        }else{
+            div.appendChild(left);
+        }
+
+        list.appendChild(div);
     });
+
+    content.appendChild(list);
 }
 
-/* ---------------- COMPLETE ITEM ---------------- */
+content.addEventListener("click",function(e){
+    if(e.target.classList.contains("check")){
+        const index=e.target.dataset.index;
 
-function completeItem(index,type){
-    let month = new Date().toLocaleString('default',{month:'long'});
-    completedData[month]++;
+        if(currentWorkspace==="tasks"){
+            completedTasks.push({...tasks[index],completed:new Date()});
+            tasks.splice(index,1);
+        }else{
+            completedGoals.push({...goals[index],completed:new Date()});
+            goals.splice(index,1);
+        }
 
-    if(type==="task"){
-        tasks.splice(index,1);
-        renderTasks();
-    } else {
-        goals.splice(index,1);
-        renderGoals();
+        save();
+        renderList();
     }
+});
 
-    saveData();
-}
+function renderStats(){
+    content.innerHTML=`
+        <canvas id="tasksChart"></canvas>
+        <canvas id="goalsChart"></canvas>
+    `;
 
-/* ---------------- CHART ---------------- */
+    const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const taskData=new Array(12).fill(0);
+    const goalData=new Array(12).fill(0);
 
-let chart;
+    completedTasks.forEach(t=>{
+        const m=new Date(t.completed).getMonth();
+        taskData[m]++;
+    });
 
-function updateChart(){
-    if(chart) chart.destroy();
+    completedGoals.forEach(g=>{
+        const m=new Date(g.completed).getMonth();
+        goalData[m]++;
+    });
 
-    chart = new Chart(document.getElementById("statsChart"),{
-        type:"line",
+    new Chart(document.getElementById("tasksChart"),{
+        type:"bar",
         data:{
-            labels:Object.keys(completedData),
-            datasets:[{
-                label:"Completed Items",
-                data:Object.values(completedData),
-                fill:false,
-                tension:0.2
-            }]
+            labels:months,
+            datasets:[{label:"Tasks Completed",data:taskData}]
+        }
+    });
+
+    new Chart(document.getElementById("goalsChart"),{
+        type:"bar",
+        data:{
+            labels:months,
+            datasets:[{label:"Goals Completed",data:goalData}]
         }
     });
 }
 
-/* ---------------- INITIAL LOAD ---------------- */
+document.getElementById("newBtn").onclick=()=>{
+    modalBg.style.display="flex";
+    modalTitle.innerText=currentWorkspace==="tasks"?"New Task":"New Goal";
+    itemDate.style.display=currentWorkspace==="tasks"?"block":"none";
+};
 
-renderTasks();
-renderGoals();
+modalBg.onclick=(e)=>{
+    if(e.target===modalBg) modalBg.style.display="none";
+};
 
+document.getElementById("createBtn").onclick=()=>{
+    if(!itemName.value) return;
+
+    if(currentWorkspace==="tasks"){
+        tasks.push({name:itemName.value,date:itemDate.value});
+    }else{
+        goals.push({name:itemName.value});
+    }
+
+    itemName.value="";
+    itemDate.value="";
+    modalBg.style.display="none";
+    save();
+    renderList();
+};
+
+document.getElementById("tasksBtn").onclick=()=>switchWorkspace("tasks");
+document.getElementById("goalsBtn").onclick=()=>switchWorkspace("goals");
+document.getElementById("statsBtn").onclick=()=>switchWorkspace("stats");
+
+renderList();
 </script>
 
 </body>
