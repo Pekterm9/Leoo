@@ -205,10 +205,18 @@ canvas{
 <script>
 let currentWorkspace = "tasks";
 
-let tasks = [];
-let goals = [];
+/* ---------------- STORAGE KEYS ---------------- */
 
-let completedData = {
+const TASKS_KEY = "leoo_tasks";
+const GOALS_KEY = "leoo_goals";
+const STATS_KEY = "leoo_stats";
+
+/* ---------------- LOAD FROM STORAGE ---------------- */
+
+let tasks = JSON.parse(localStorage.getItem(TASKS_KEY)) || [];
+let goals = JSON.parse(localStorage.getItem(GOALS_KEY)) || [];
+
+let completedData = JSON.parse(localStorage.getItem(STATS_KEY)) || {
     "January":0,
     "February":0,
     "March":0,
@@ -222,6 +230,16 @@ let completedData = {
     "November":0,
     "December":0
 };
+
+/* ---------------- SAVE FUNCTION ---------------- */
+
+function saveData(){
+    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+    localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
+    localStorage.setItem(STATS_KEY, JSON.stringify(completedData));
+}
+
+/* ---------------- WORKSPACE SWITCH ---------------- */
 
 function switchWorkspace(type){
     currentWorkspace = type;
@@ -244,6 +262,8 @@ function switchWorkspace(type){
     }
 }
 
+/* ---------------- MODAL ---------------- */
+
 function openModal(){
     modalBg.style.display = "flex";
     itemInput.value = "";
@@ -262,24 +282,31 @@ function closeModal(){
     modalBg.style.display = "none";
 }
 
+/* ---------------- CREATE ITEM ---------------- */
+
 function createItem(){
-    let text = itemInput.value;
+    let text = itemInput.value.trim();
     if(text === "") return;
 
     if(currentWorkspace === "tasks"){
-        let date = dateInput.value;
+        let date = dateInput.value || null;
         tasks.push({text, date});
+        saveData();
         renderTasks();
     } else {
         goals.push({text});
+        saveData();
         renderGoals();
     }
 
     closeModal();
 }
 
+/* ---------------- RENDER TASKS ---------------- */
+
 function renderTasks(){
     tasksList.innerHTML = "";
+
     tasks.forEach((task, index)=>{
         let div = document.createElement("div");
         div.className = "item";
@@ -291,9 +318,14 @@ function renderTasks(){
         warning.className = "warning";
 
         let daysText = "";
+
         if(task.date){
             let today = new Date();
+            today.setHours(0,0,0,0);
+
             let due = new Date(task.date);
+            due.setHours(0,0,0,0);
+
             let diff = Math.ceil((due - today)/(1000*60*60*24));
 
             if(diff === 0){
@@ -331,8 +363,11 @@ function renderTasks(){
     });
 }
 
+/* ---------------- RENDER GOALS ---------------- */
+
 function renderGoals(){
     goalsList.innerHTML = "";
+
     goals.forEach((goal,index)=>{
         let div = document.createElement("div");
         div.className="item";
@@ -358,6 +393,8 @@ function renderGoals(){
     });
 }
 
+/* ---------------- COMPLETE ITEM ---------------- */
+
 function completeItem(index,type){
     let month = new Date().toLocaleString('default',{month:'long'});
     completedData[month]++;
@@ -369,9 +406,14 @@ function completeItem(index,type){
         goals.splice(index,1);
         renderGoals();
     }
+
+    saveData();
 }
 
+/* ---------------- CHART ---------------- */
+
 let chart;
+
 function updateChart(){
     if(chart) chart.destroy();
 
@@ -389,8 +431,11 @@ function updateChart(){
     });
 }
 
+/* ---------------- INITIAL LOAD ---------------- */
+
 renderTasks();
 renderGoals();
+
 </script>
 
 </body>
