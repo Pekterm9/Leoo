@@ -66,6 +66,8 @@ body{
     flex:1;
     padding:40px;
     overflow-y:auto;
+    position:relative;
+    z-index:1;
 }
 
 .hidden{
@@ -143,12 +145,15 @@ body{
 /* MODAL */
 
 .modal-bg{
+    .modal-bg{
     position:fixed;
     inset:0;
     backdrop-filter:blur(6px);
+    background:rgba(0,0,0,0.2); /* helps visibility */
     display:none;
     align-items:center;
     justify-content:center;
+    z-index:1000; /* ensures correct layering */
 }
 
 .modal{
@@ -287,19 +292,12 @@ function switchWorkspace(type){
 }
 
 function openModal(){
-    modalBg.style.display="flex";
-    itemInput.value="";
-    dateInput.value="";
-    if(currentWorkspace==="tasks"){
-        modalTitle.innerText="New Task";
-        dateInput.style.display="block";
-    } else {
-        modalTitle.innerText="New Goal";
-        dateInput.style.display="none";
-    }
+    document.getElementById("modalBg").style.display = "flex";
 }
 
-function closeModal(){ modalBg.style.display="none"; }
+function closeModal(){
+    document.getElementById("modalBg").style.display = "none";
+}
 
 function createItem(){
     let text=itemInput.value.trim();
