@@ -1,10 +1,9 @@
-<!DOCTYPE html
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leoo - Think smarter, plan wiser</title>
-
+<title>Leoo</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -12,79 +11,103 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
 }
 
 body{
     display:flex;
     height:100vh;
-    background:#eaeaea;
+    background:#f4f6f9;
 }
 
 /* SIDEBAR */
 
 .sidebar{
-    width:250px;
-    background:black;
+    width:260px;
+    background:#111827;
     color:white;
-    padding:40px 20px;
+    padding:40px 25px;
     display:flex;
     flex-direction:column;
-    align-items:center;
 }
 
 .sidebar h1{
-    font-size:40px;
+    font-size:36px;
 }
 
 .sidebar p{
-    font-size:14px;
-    margin-bottom:40px;
+    font-size:13px;
+    color:#9ca3af;
+    margin-bottom:50px;
 }
 
 .nav-btn{
-    width:160px;
     padding:12px;
-    margin:10px 0;
+    margin:8px 0;
     border:none;
     border-radius:10px;
+    background:#1f2937;
+    color:white;
     cursor:pointer;
-    font-size:16px;
+    transition:0.2s;
+}
+
+.nav-btn:hover{
+    background:#374151;
 }
 
 .active{
-    outline:3px solid #ffd700;
+    border:2px solid #facc15;
 }
+
+/* WORKSPACE */
 
 .workspace{
     flex:1;
     padding:40px;
     overflow-y:auto;
-    transition:0.3s;
+}
+
+.hidden{
+    display:none;
 }
 
 .topbar{
     display:flex;
-    justify-content:space-between;
+    justify-content:flex-end;
     margin-bottom:20px;
 }
 
 .new-btn{
-    padding:8px 14px;
+    background:#111827;
+    color:white;
+    padding:10px 18px;
+    border:none;
     border-radius:8px;
-    border:1px solid #333;
     cursor:pointer;
+    transition:0.2s;
 }
+
+.new-btn:hover{
+    opacity:0.85;
+}
+
+/* ITEMS */
 
 .item{
     display:flex;
-    align-items:center;
     justify-content:space-between;
+    align-items:center;
     background:white;
-    padding:12px 20px;
-    margin:10px 0;
-    border-radius:10px;
-    border:1px solid #ccc;
+    padding:15px 20px;
+    border-radius:12px;
+    margin:12px 0;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    transition:0.2s;
+}
+
+.item:hover{
+    transform:translateY(-2px);
 }
 
 .item-left{
@@ -95,31 +118,34 @@ body{
 .checkbox{
     width:18px;
     height:18px;
-    border:1px solid black;
-    margin-right:12px;
+    border-radius:4px;
+    border:2px solid #111827;
+    margin-right:15px;
     cursor:pointer;
 }
 
-.warning{
-    margin-right:8px;
-    font-weight:bold;
+.badge{
+    font-size:12px;
+    padding:3px 8px;
+    border-radius:20px;
 }
 
 .orange{
-    color:orange;
+    background:#fff7ed;
+    color:#ea580c;
 }
 
 .red{
-    color:red;
+    background:#fef2f2;
+    color:#dc2626;
 }
+
+/* MODAL */
 
 .modal-bg{
     position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    backdrop-filter:blur(5px);
+    inset:0;
+    backdrop-filter:blur(6px);
     display:none;
     align-items:center;
     justify-content:center;
@@ -128,12 +154,17 @@ body{
 .modal{
     background:white;
     padding:30px;
-    width:400px;
+    width:420px;
     border-radius:20px;
+    animation:fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn{
+    from{transform:scale(0.95); opacity:0;}
+    to{transform:scale(1); opacity:1;}
 }
 
 .modal h2{
-    text-align:center;
     margin-bottom:20px;
 }
 
@@ -141,23 +172,35 @@ body{
     width:100%;
     padding:10px;
     margin:10px 0;
+    border-radius:8px;
+    border:1px solid #ccc;
 }
 
 .modal button{
     width:100%;
     padding:10px;
     margin-top:10px;
+    border:none;
+    border-radius:8px;
     cursor:pointer;
 }
 
-.hidden{
-    display:none;
+.create-btn{
+    background:#111827;
+    color:white;
 }
+
+.cancel-btn{
+    background:#e5e7eb;
+}
+
+/* STATS */
 
 canvas{
     background:white;
     padding:20px;
-    border-radius:10px;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
 }
 </style>
 </head>
@@ -188,7 +231,7 @@ canvas{
 </div>
 
 <div class="workspace hidden" id="statsWorkspace">
-    <h2>Tasks Completion</h2>
+    <h2>Monthly Completion</h2>
     <canvas id="statsChart"></canvas>
 </div>
 
@@ -197,245 +240,200 @@ canvas{
         <h2 id="modalTitle">New Task</h2>
         <input type="text" id="itemInput" placeholder="Type here">
         <input type="date" id="dateInput">
-        <button onclick="createItem()">Create</button>
-        <button onclick="closeModal()">Cancel</button>
+        <button class="create-btn" onclick="createItem()">Create</button>
+        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
     </div>
 </div>
 
 <script>
-let currentWorkspace = "tasks";
+const TASKS_KEY="leoo_tasks";
+const GOALS_KEY="leoo_goals";
+const STATS_KEY="leoo_stats";
 
-/* ---------------- STORAGE KEYS ---------------- */
+let tasks=JSON.parse(localStorage.getItem(TASKS_KEY))||[];
+let goals=JSON.parse(localStorage.getItem(GOALS_KEY))||[];
 
-const TASKS_KEY = "leoo_tasks";
-const GOALS_KEY = "leoo_goals";
-const STATS_KEY = "leoo_stats";
-
-/* ---------------- LOAD FROM STORAGE ---------------- */
-
-let tasks = JSON.parse(localStorage.getItem(TASKS_KEY)) || [];
-let goals = JSON.parse(localStorage.getItem(GOALS_KEY)) || [];
-
-let completedData = JSON.parse(localStorage.getItem(STATS_KEY)) || {
-    "January":0,
-    "February":0,
-    "March":0,
-    "April":0,
-    "May":0,
-    "June":0,
-    "July":0,
-    "August":0,
-    "September":0,
-    "October":0,
-    "November":0,
-    "December":0
+let completedData=JSON.parse(localStorage.getItem(STATS_KEY))||{
+    tasks:{},
+    goals:{}
 };
 
-/* ---------------- SAVE FUNCTION ---------------- */
+let currentWorkspace="tasks";
 
-function saveData(){
-    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
-    localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
-    localStorage.setItem(STATS_KEY, JSON.stringify(completedData));
+function save(){
+    localStorage.setItem(TASKS_KEY,JSON.stringify(tasks));
+    localStorage.setItem(GOALS_KEY,JSON.stringify(goals));
+    localStorage.setItem(STATS_KEY,JSON.stringify(completedData));
 }
 
-/* ---------------- WORKSPACE SWITCH ---------------- */
-
 function switchWorkspace(type){
-    currentWorkspace = type;
-
+    currentWorkspace=type;
     document.querySelectorAll(".workspace").forEach(w=>w.classList.add("hidden"));
     document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
 
-    if(type === "tasks"){
+    if(type==="tasks"){
         tasksWorkspace.classList.remove("hidden");
         document.querySelectorAll(".nav-btn")[0].classList.add("active");
     }
-    if(type === "goals"){
+    if(type==="goals"){
         goalsWorkspace.classList.remove("hidden");
         document.querySelectorAll(".nav-btn")[1].classList.add("active");
     }
-    if(type === "stats"){
+    if(type==="stats"){
         statsWorkspace.classList.remove("hidden");
         document.querySelectorAll(".nav-btn")[2].classList.add("active");
         updateChart();
     }
 }
 
-/* ---------------- MODAL ---------------- */
-
 function openModal(){
-    modalBg.style.display = "flex";
-    itemInput.value = "";
-    dateInput.value = "";
-
-    if(currentWorkspace === "tasks"){
-        modalTitle.innerText = "New Task";
-        dateInput.style.display = "block";
+    modalBg.style.display="flex";
+    itemInput.value="";
+    dateInput.value="";
+    if(currentWorkspace==="tasks"){
+        modalTitle.innerText="New Task";
+        dateInput.style.display="block";
     } else {
-        modalTitle.innerText = "New Goal";
-        dateInput.style.display = "none";
+        modalTitle.innerText="New Goal";
+        dateInput.style.display="none";
     }
 }
 
-function closeModal(){
-    modalBg.style.display = "none";
-}
-
-/* ---------------- CREATE ITEM ---------------- */
+function closeModal(){ modalBg.style.display="none"; }
 
 function createItem(){
-    let text = itemInput.value.trim();
-    if(text === "") return;
+    let text=itemInput.value.trim();
+    if(!text) return;
 
-    if(currentWorkspace === "tasks"){
-        let date = dateInput.value || null;
-        tasks.push({text, date});
-        saveData();
+    if(currentWorkspace==="tasks"){
+        tasks.push({text,date:dateInput.value||null});
         renderTasks();
     } else {
         goals.push({text});
-        saveData();
         renderGoals();
     }
-
+    save();
     closeModal();
 }
 
-/* ---------------- RENDER TASKS ---------------- */
-
 function renderTasks(){
-    tasksList.innerHTML = "";
+    tasksList.innerHTML="";
+    tasks.forEach((t,i)=>{
+        let div=document.createElement("div");
+        div.className="item";
 
-    tasks.forEach((task, index)=>{
-        let div = document.createElement("div");
-        div.className = "item";
+        let left=document.createElement("div");
+        left.className="item-left";
 
-        let left = document.createElement("div");
-        left.className = "item-left";
+        let checkbox=document.createElement("div");
+        checkbox.className="checkbox";
+        checkbox.onclick=()=>complete(i,"tasks");
 
-        let warning = document.createElement("span");
-        warning.className = "warning";
+        let span=document.createElement("span");
+        span.innerText=t.text;
 
-        let daysText = "";
-
-        if(task.date){
-            let today = new Date();
-            today.setHours(0,0,0,0);
-
-            let due = new Date(task.date);
-            due.setHours(0,0,0,0);
-
-            let diff = Math.ceil((due - today)/(1000*60*60*24));
-
-            if(diff === 0){
-                warning.innerText = "!!!";
-                warning.classList.add("red");
-            }
-            else if(diff === 1){
-                warning.innerText = "!";
-                warning.classList.add("orange");
-            }
-
-            daysText = diff >= 0 ? `<${diff} days left>` : "<Expired>";
-        }
-
-        let checkbox = document.createElement("div");
-        checkbox.className = "checkbox";
-        checkbox.onclick = ()=>{
-            completeItem(index, "task");
-        };
-
-        let span = document.createElement("span");
-        span.innerText = task.text;
-
-        left.appendChild(warning);
         left.appendChild(checkbox);
         left.appendChild(span);
 
-        let right = document.createElement("span");
-        right.innerHTML = daysText;
+        let right=document.createElement("div");
+
+        if(t.date){
+            let today=new Date();
+            today.setHours(0,0,0,0);
+            let due=new Date(t.date);
+            due.setHours(0,0,0,0);
+            let diff=Math.ceil((due-today)/(1000*60*60*24));
+
+            let badge=document.createElement("span");
+            badge.className="badge";
+
+            if(diff===0){
+                badge.classList.add("red");
+                badge.innerText="Due Today";
+            }
+            else if(diff===1){
+                badge.classList.add("orange");
+                badge.innerText="1 Day Left";
+            }
+            else if(diff>1){
+                badge.innerText=diff+" Days Left";
+            }
+            else{
+                badge.classList.add("red");
+                badge.innerText="Expired";
+            }
+            right.appendChild(badge);
+        }
 
         div.appendChild(left);
         div.appendChild(right);
-
         tasksList.appendChild(div);
     });
 }
 
-/* ---------------- RENDER GOALS ---------------- */
-
 function renderGoals(){
-    goalsList.innerHTML = "";
-
-    goals.forEach((goal,index)=>{
-        let div = document.createElement("div");
+    goalsList.innerHTML="";
+    goals.forEach((g,i)=>{
+        let div=document.createElement("div");
         div.className="item";
 
-        let left = document.createElement("div");
+        let left=document.createElement("div");
         left.className="item-left";
 
-        let checkbox = document.createElement("div");
+        let checkbox=document.createElement("div");
         checkbox.className="checkbox";
-        checkbox.onclick=()=>{
-            completeItem(index,"goal");
-        };
+        checkbox.onclick=()=>complete(i,"goals");
 
         let span=document.createElement("span");
-        span.innerText=goal.text;
+        span.innerText=g.text;
 
         left.appendChild(checkbox);
         left.appendChild(span);
-
         div.appendChild(left);
-
         goalsList.appendChild(div);
     });
 }
 
-/* ---------------- COMPLETE ITEM ---------------- */
+function complete(index,type){
+    let month=new Date().toLocaleString('default',{month:'long'});
 
-function completeItem(index,type){
-    let month = new Date().toLocaleString('default',{month:'long'});
-    completedData[month]++;
+    if(!completedData[type][month]) completedData[type][month]=0;
+    completedData[type][month]++;
 
-    if(type==="task"){
-        tasks.splice(index,1);
-        renderTasks();
-    } else {
-        goals.splice(index,1);
-        renderGoals();
-    }
+    if(type==="tasks"){ tasks.splice(index,1); renderTasks();}
+    else { goals.splice(index,1); renderGoals(); }
 
-    saveData();
+    save();
 }
 
-/* ---------------- CHART ---------------- */
-
 let chart;
-
 function updateChart(){
     if(chart) chart.destroy();
 
-    chart = new Chart(document.getElementById("statsChart"),{
+    const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+    chart=new Chart(statsChart,{
         type:"line",
         data:{
-            labels:Object.keys(completedData),
-            datasets:[{
-                label:"Completed Items",
-                data:Object.values(completedData),
-                fill:false,
-                tension:0.2
-            }]
+            labels:months,
+            datasets:[
+                {
+                    label:"Tasks Completed",
+                    data:months.map(m=>completedData.tasks[m]||0),
+                    borderWidth:3
+                },
+                {
+                    label:"Goals Completed",
+                    data:months.map(m=>completedData.goals[m]||0),
+                    borderWidth:3
+                }
+            ]
         }
     });
 }
 
-/* ---------------- INITIAL LOAD ---------------- */
-
 renderTasks();
 renderGoals();
-
 </script>
 
 </body>
