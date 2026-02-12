@@ -1,0 +1,397 @@
+<!DOCTYPE html
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leoo - Think smarter, plan wiser</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    display:flex;
+    height:100vh;
+    background:#eaeaea;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    width:250px;
+    background:black;
+    color:white;
+    padding:40px 20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.sidebar h1{
+    font-size:40px;
+}
+
+.sidebar p{
+    font-size:14px;
+    margin-bottom:40px;
+}
+
+.nav-btn{
+    width:160px;
+    padding:12px;
+    margin:10px 0;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+.active{
+    outline:3px solid #ffd700;
+}
+
+.workspace{
+    flex:1;
+    padding:40px;
+    overflow-y:auto;
+    transition:0.3s;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:20px;
+}
+
+.new-btn{
+    padding:8px 14px;
+    border-radius:8px;
+    border:1px solid #333;
+    cursor:pointer;
+}
+
+.item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:white;
+    padding:12px 20px;
+    margin:10px 0;
+    border-radius:10px;
+    border:1px solid #ccc;
+}
+
+.item-left{
+    display:flex;
+    align-items:center;
+}
+
+.checkbox{
+    width:18px;
+    height:18px;
+    border:1px solid black;
+    margin-right:12px;
+    cursor:pointer;
+}
+
+.warning{
+    margin-right:8px;
+    font-weight:bold;
+}
+
+.orange{
+    color:orange;
+}
+
+.red{
+    color:red;
+}
+
+.modal-bg{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    backdrop-filter:blur(5px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+}
+
+.modal{
+    background:white;
+    padding:30px;
+    width:400px;
+    border-radius:20px;
+}
+
+.modal h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.modal input{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+}
+
+.modal button{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    cursor:pointer;
+}
+
+.hidden{
+    display:none;
+}
+
+canvas{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h1>Leoo</h1>
+    <p>Think smarter, plan wiser</p>
+
+    <button class="nav-btn active" onclick="switchWorkspace('tasks')">Tasks</button>
+    <button class="nav-btn" onclick="switchWorkspace('goals')">Goals</button>
+    <button class="nav-btn" onclick="switchWorkspace('stats')">Statistics</button>
+</div>
+
+<div class="workspace" id="tasksWorkspace">
+    <div class="topbar">
+        <button class="new-btn" onclick="openModal()">+ New</button>
+    </div>
+    <div id="tasksList"></div>
+</div>
+
+<div class="workspace hidden" id="goalsWorkspace">
+    <div class="topbar">
+        <button class="new-btn" onclick="openModal()">+ New</button>
+    </div>
+    <div id="goalsList"></div>
+</div>
+
+<div class="workspace hidden" id="statsWorkspace">
+    <h2>Tasks Completion</h2>
+    <canvas id="statsChart"></canvas>
+</div>
+
+<div class="modal-bg" id="modalBg">
+    <div class="modal">
+        <h2 id="modalTitle">New Task</h2>
+        <input type="text" id="itemInput" placeholder="Type here">
+        <input type="date" id="dateInput">
+        <button onclick="createItem()">Create</button>
+        <button onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<script>
+let currentWorkspace = "tasks";
+
+let tasks = [];
+let goals = [];
+
+let completedData = {
+    "January":0,
+    "February":0,
+    "March":0,
+    "April":0,
+    "May":0,
+    "June":0,
+    "July":0,
+    "August":0,
+    "September":0,
+    "October":0,
+    "November":0,
+    "December":0
+};
+
+function switchWorkspace(type){
+    currentWorkspace = type;
+
+    document.querySelectorAll(".workspace").forEach(w=>w.classList.add("hidden"));
+    document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+
+    if(type === "tasks"){
+        tasksWorkspace.classList.remove("hidden");
+        document.querySelectorAll(".nav-btn")[0].classList.add("active");
+    }
+    if(type === "goals"){
+        goalsWorkspace.classList.remove("hidden");
+        document.querySelectorAll(".nav-btn")[1].classList.add("active");
+    }
+    if(type === "stats"){
+        statsWorkspace.classList.remove("hidden");
+        document.querySelectorAll(".nav-btn")[2].classList.add("active");
+        updateChart();
+    }
+}
+
+function openModal(){
+    modalBg.style.display = "flex";
+    itemInput.value = "";
+    dateInput.value = "";
+
+    if(currentWorkspace === "tasks"){
+        modalTitle.innerText = "New Task";
+        dateInput.style.display = "block";
+    } else {
+        modalTitle.innerText = "New Goal";
+        dateInput.style.display = "none";
+    }
+}
+
+function closeModal(){
+    modalBg.style.display = "none";
+}
+
+function createItem(){
+    let text = itemInput.value;
+    if(text === "") return;
+
+    if(currentWorkspace === "tasks"){
+        let date = dateInput.value;
+        tasks.push({text, date});
+        renderTasks();
+    } else {
+        goals.push({text});
+        renderGoals();
+    }
+
+    closeModal();
+}
+
+function renderTasks(){
+    tasksList.innerHTML = "";
+    tasks.forEach((task, index)=>{
+        let div = document.createElement("div");
+        div.className = "item";
+
+        let left = document.createElement("div");
+        left.className = "item-left";
+
+        let warning = document.createElement("span");
+        warning.className = "warning";
+
+        let daysText = "";
+        if(task.date){
+            let today = new Date();
+            let due = new Date(task.date);
+            let diff = Math.ceil((due - today)/(1000*60*60*24));
+
+            if(diff === 0){
+                warning.innerText = "!!!";
+                warning.classList.add("red");
+            }
+            else if(diff === 1){
+                warning.innerText = "!";
+                warning.classList.add("orange");
+            }
+
+            daysText = diff >= 0 ? `<${diff} days left>` : "<Expired>";
+        }
+
+        let checkbox = document.createElement("div");
+        checkbox.className = "checkbox";
+        checkbox.onclick = ()=>{
+            completeItem(index, "task");
+        };
+
+        let span = document.createElement("span");
+        span.innerText = task.text;
+
+        left.appendChild(warning);
+        left.appendChild(checkbox);
+        left.appendChild(span);
+
+        let right = document.createElement("span");
+        right.innerHTML = daysText;
+
+        div.appendChild(left);
+        div.appendChild(right);
+
+        tasksList.appendChild(div);
+    });
+}
+
+function renderGoals(){
+    goalsList.innerHTML = "";
+    goals.forEach((goal,index)=>{
+        let div = document.createElement("div");
+        div.className="item";
+
+        let left = document.createElement("div");
+        left.className="item-left";
+
+        let checkbox = document.createElement("div");
+        checkbox.className="checkbox";
+        checkbox.onclick=()=>{
+            completeItem(index,"goal");
+        };
+
+        let span=document.createElement("span");
+        span.innerText=goal.text;
+
+        left.appendChild(checkbox);
+        left.appendChild(span);
+
+        div.appendChild(left);
+
+        goalsList.appendChild(div);
+    });
+}
+
+function completeItem(index,type){
+    let month = new Date().toLocaleString('default',{month:'long'});
+    completedData[month]++;
+
+    if(type==="task"){
+        tasks.splice(index,1);
+        renderTasks();
+    } else {
+        goals.splice(index,1);
+        renderGoals();
+    }
+}
+
+let chart;
+function updateChart(){
+    if(chart) chart.destroy();
+
+    chart = new Chart(document.getElementById("statsChart"),{
+        type:"line",
+        data:{
+            labels:Object.keys(completedData),
+            datasets:[{
+                label:"Completed Items",
+                data:Object.values(completedData),
+                fill:false,
+                tension:0.2
+            }]
+        }
+    });
+}
+
+renderTasks();
+renderGoals();
+</script>
+
+</body>
+</html>
